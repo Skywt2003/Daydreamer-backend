@@ -1,0 +1,203 @@
+openapi: 3.0.0
+info:
+  title: Daydreamer API
+  description: Daydreamer Blog System API
+  version: 0.0.1
+servers:
+  - url: https://api.skywt.cn/
+    description: production server
+  - url: http://localhost:3000/
+    description: local development server
+paths:
+  /timeline:
+    get:
+      summary: 获取指定范围时间线文章摘要。
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 0
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 20
+      responses:
+        "200":
+          description: 返回一个数组，包含指定范围时间线的文章摘要对象。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Timeline"
+  /article/{slug}:
+    get:
+      summary: 获取一篇文章。
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 返回一个文章对象。
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Article"
+  /article/{slug}/comments:
+    get:
+      summary: 获取某篇文章的评论。
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+        # - name: order
+        #   in: query
+        #   required: false
+        #   schema:
+        #     type: string
+        #     enum:
+        #       - desc
+        #       - asc
+        #     default: asc
+        # - name: page
+        #   in: query
+        #   required: false
+        #   schema:
+        #     type: integer
+        #     minimum: 1
+        #     default: 0
+        # - name: pageSize
+        #   in: query
+        #   required: false
+        #   schema:
+        #     type: integer
+        #     minimum: 1
+        #     default: 20
+      responses:
+        "200":
+          description: 返回一个数组对象，包含指定范围的评论对象。
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Comment"
+    post:
+      summary: 发表一条新的评论。
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                author:
+                  type: string
+                mail:
+                  type: string
+                url:
+                  type: string
+                text:
+                  type: string
+                receiveMail:
+                  type: boolean
+                parent:
+                  type: number
+      responses:
+        "200":
+          description: 返回添加的评论对象，同时返回签名的 cookie
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+
+components:
+  schemas:
+    Timeline:
+      type: array
+      items:
+        type: object
+        properties:
+          slug:
+            type: string
+          title:
+            type: string
+          created:
+            type: number
+          modified:
+            type: number
+          digest:
+            type: string
+          headPic:
+            type: string
+          # commentsNum:
+          #   type: number
+
+    Article:
+      type: object
+      properties:
+        cid:
+          type: number
+        slug:
+          type: string
+        title:
+          type: string
+        created:
+          type: number
+        modified:
+          type: number
+        text:
+          type: string
+        inTimeline:
+          type: boolean
+        headPic:
+          type: string
+        allowComment:
+          type: boolean
+
+    Comment:
+      type: object
+      properties:
+        coid:
+          type: number
+        cid:
+          type: number
+        created:
+          type: number
+        author:
+          type: string
+        url:
+          type: string
+        avatar:
+          type: string
+        status:
+          type: string
+          enum:
+            - approved
+            - pending
+        text:
+          type: string
+        isOwner:
+          type: boolean
+        parent:
+          type: number
+        children:
+          type: array
+          items:
+            $ref: "#/components/schemas/Comment"
