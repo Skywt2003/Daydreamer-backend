@@ -164,7 +164,6 @@ router.post("/article/:slug/comments", async (ctx, next) => {
   const article = await Article.findOne({
     where: { slug },
   });
-  console.log(ctx.request.body);
   const comment = await Comment.create({
     cid: article.cid,
     created: new Date(),
@@ -195,6 +194,11 @@ router.post("/article/:slug/comments", async (ctx, next) => {
   ctx.cookies.set("url", encodeURIComponent(comment.url), cookieOptions);
 });
 
+function checkAllowOrigin(origin) {
+  const allowOrigins = process.env.ALLOW_ORIGIN.split(",");
+  return allowOrigins.includes(origin);
+}
+
 // use 的顺序需要注意
 app
   .use(
@@ -203,11 +207,7 @@ app
       // 现代浏览器的跨域限制，简直是规则类怪谈
       origin: (ctx) => {
         const origin = ctx.get("Origin");
-        console.log(origin);
-        if (
-          origin.startsWith("http://localhost:4321") ||
-          origin.startsWith("https://skywt.cn")
-        ) {
+        if (checkAllowOrigin(origin)) {
           return origin;
         }
       },

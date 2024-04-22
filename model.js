@@ -2,7 +2,7 @@ import { Sequelize, DataTypes, Model } from "sequelize";
 
 const sequelize = new Sequelize({
   dialect: "sqlite",
-  storage: "/data/db.sqlite",
+  storage: process.env.DB_PATH || "/data/db.sqlite",
 });
 
 // Sequelize 的神奇设定：实际表名通过 inflection 库计算得到
