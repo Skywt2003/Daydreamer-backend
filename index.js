@@ -192,7 +192,22 @@ router.post("/article/:slug/comments", async (ctx, next) => {
   ctx.cookies.set("author", encodeURIComponent(comment.author), cookieOptions);
   ctx.cookies.set("mail", encodeURIComponent(comment.mail), cookieOptions);
   ctx.cookies.set("url", encodeURIComponent(comment.url), cookieOptions);
+
+  pushNotice(
+    "博客有新的评论",
+    `来自 ${comment.author}（${comment.mail}）的评论`
+  );
 });
+
+async function pushNotice(title, content) {
+  const bark_url = process.env.BARK_URL;
+  if (!bark_url) return;
+  try {
+    const ret = await fetch(`${bark_url}${title}/${content}`);
+  } catch (e) {
+    console.log(e);
+  }
+}
 
 function checkAllowOrigin(origin) {
   const allowOrigins = process.env.ALLOW_ORIGIN.split(",");
