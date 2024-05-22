@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true
+    // sadly, 'paths' are not supported by ts-node/esm T_T
+    // "baseUrl": ".",
+    // "paths": {
+    //   "@api/*": ["src/api/*"],
+    //   "@orm/*": ["src/orm/*"]
+    // }
+  },
+  "include": ["src/**/*.ts"],
+  "ts-node": {
+    "esm": true,
+    "transpileOnly": true
+  }
+}

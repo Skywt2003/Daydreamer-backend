@@ -12,5 +12,6 @@ node_modules/
 .DS_Store
 
 # Special files
-db.sqlite
+*.sqlite
 docker-compose.yml
+compose.yml

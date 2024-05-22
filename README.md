@@ -1,45 +1,87 @@
-# Daydreamer Backend
+# Daydreamer / Backend
 
-实现 Typecho Restful API 后端的替代品，但是并不完全兼容。
-
-长期以来，博客一直使用基于 PHP 的博客系统搭建，从 WordPress 到 Typecho。然而，作为服务端语言的 PHP 并不利于实践前后端分离的现代前端技术。基于这一原因，2024 年开始，我使用 Typecho Restful API 插件，基于其提供的 API 开发博客前端，作为替代方案。
-
-现在前端已实现基本功能，很想拓展后端的一些功能，然而 Typecho 的 PHP 技术栈已经是属于上个时代的技术，我并不想基于其继续开发。所以，是时候从头开发一个 headless 的博客系统后端，来取代 Typecho 了。
+驱动 [skywt.cn](https://skywt.cn) 网站博客系统、评论系统的后端。
 
 ## 基本信息
 
-技术选型：
+### 技术栈
 
 - Node.js
 - Web 框架：Koa.js
-- ORM 框架：Sequelize
-- 数据库：SQLite（后续可升级）
-- 容器化部署
+- ORM 框架：TypeORM
+- 数据库：Postgres
 
-## 设计理念
+### 2.0 Changelog
 
-尽量使用**优雅的设计**。
+- 全面使用 TypeScript
+- 考虑到对 TypeScript 的兼容性，弃用 Sequelize ORM 框架，改为使用 TypeORM 框架
+- 考虑到可拓展性，数据库从 SQLite 迁移到 Postgres
+- 优化数据表设计，设置了充分的外键约束和合适的数据类型约束
+- 根据 RESTful 规范重构了接口标准
 
-1. 评论和内容不能解耦合。**评论都是隶属于某篇文章或页面的的**。（这是我不喜欢「静态博客 + 独立评论系统」方案的原因）
-2. **Restful API 应该有足够的抽象度**，而不仅是对数据表的描述。例如，评论和文章作为独立的两张表，这是关系型数据库的局限，而非数据结构的应然设计。所以 API 中设计的评论接口 URL 隶属某篇文章（/blog/:slug/comments）。
+## 部署与使用
 
-## 数据表设计
+### 环境变量
 
-仔细思考，Typecho 中文章（post）和页面（page）的区别，只是「是否在 timeline 中显示」而已。对于传统的大型 CMS 来说，这个区分或许很重要；但是对于我们这样的小型个人博客来说，其实并没有必要。因为没几个「页面」。
+- `COOKIE_KEYS`：用于 Cookie 签名的 key 字符串。如果有多个 key 用逗号分隔。
+- `COOKIE_DOMAIN`：Cookie 域名，请设置为前端域名，否则跨域无法访问。
+- `ALLOW_ORIGIN`：允许的请求 Origin，请设置为前端域名，否则跨域无法访问。
+- `DB_HOST`：Postgres 服务器主机地址。默认为 `localhost`。
+- `DB_PORT`：Postgres 服务器端口号。默认为 `5432`。
+- `DB_DATABASE`：Postgres 数据库名。
+- `DB_USERNAME`：Postgres 用户名。
+- `DB_PASSWORD`：Postgres 密码。
+- `BARK_URL`：Bark 评论通知 URL，请设置为自己的 Bark 实例 URL。留空则关闭评论通知。
+- `OLD_DB_PATH`：待迁移的 SQLite 文件路径，用于从 1.0 版本进行迁移。
 
-本博客系统使用简化的概念：文章和页面都是内容。文章是显示在 timeline 的内容，页面是不显示在 timeline 的内容，增添 boolean 属性 inTimeline。有一个词可以统一 page 和 post，那就是 **article**。所以在我的设计里，所有内容都是一篇篇 article。
+### 从 1.0 迁移
 
-可见 [model.js](./model.js) 中的 ORM 定义。
+```bash
+npm run migrate
+```
 
-- Articles 表
-- Comments 表
-- Subscriptions 表
+### Docker 部署
+
+推荐使用 Docker 方式部署。示例 `compose.yml` 文件如下：
+
+```yaml
+services:
+  daydreamer-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: daydreamer-backend
+    environment:
+      - COOKIE_KEYS=YOUR_KEY1,YOUR_KEY2,YOUR_KEY3
+      - COOKIE_DOMAIN=.skywt.cn
+      - ALLOW_ORIGIN=http://localhost:4321,https://skywt.cn,https://alpha.skywt.cn
+      - BARK_URL=https://push.skywt.cn/YOUR_BARK_TOKEN/
+      - DB_HOST=postgres
+      - DB_DATABASE=daydreamer
+      - DB_USERNAME=daydreamer
+      - DB_PASSWORD=YOUR_PASSWORD
+    ports:
+      - "3000:3000"
+    networks:
+      - caddy
+      - postgres
+    restart: unless-stopped
+
+networks:
+  caddy:
+    external: true
+  postgres:
+    external: true
+```
 
 ## API
 
-可见 [api-standard.yaml](./api-standard.yaml) 中的 API 定义。
+请参见 [main.ts](./src/api) 中的各模块 API 实现。
+
+暂时只实现了面向用户的获取文章、获取评论、发表评论 API，没有实现面向管理员的 API。对于管理文章和评论操作，可以直接使用数据库管理软件，如 DBeaver。
 
 ## TODO
 
-- 各种环节的错误捕捉和处理
-- 全面启用 TypeScript（Sequelize 对 ts 支持似乎并不好）
+- [ ] OpenAPI Standard
+- [ ] 新评论回复邮件通知
+- [ ] GitHub Actions 构建 Docker image 并发布到 DockerHub
