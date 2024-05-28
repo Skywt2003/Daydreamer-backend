@@ -36,8 +36,18 @@
 
 ### 从 1.0 迁移
 
+首先配置好相关环境变量，包括 `OLD_DB_PATH` 环境变量以及 Postgres 数据库等。
+
+构建 docker 容器，运行 migrate 命令。
+
 ```bash
-npm run migrate
+docker build -t daydreamer:new --network=host .
+docker run -it --rm \
+  --name daydreamer_migrate \
+  -v /data/daydreamer:/data \
+  --env-file .env \
+  --network postgres \
+  daydreamer:new migrate
 ```
 
 ### Docker 部署
@@ -49,6 +59,7 @@ services:
   daydreamer-backend:
     build:
       context: .
+      network: host
       dockerfile: Dockerfile
     container_name: daydreamer-backend
     environment:
