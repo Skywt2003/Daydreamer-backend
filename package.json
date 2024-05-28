@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "node --loader ts-node/esm --env-file=.env src/main.ts --mode=development",
-    "migrate": "node --loader ts-node/esm --env-file=.env src/migrate/migrate.ts --mode=development",
+    "devmigrate": "node --loader ts-node/esm --env-file=.env src/migrate/migrate.ts --mode=development",
+    "migrate": "node --loader ts-node/esm src/migrate/migrate.ts --mode=production",
     "prod": "node --loader ts-node/esm src/main.ts --mode=production"
   },
   "author": "SkyWT",
