@@ -1,10 +1,16 @@
-FROM node:21-alpine
+FROM node:21-bookworm
 
 WORKDIR /app
 COPY . .
 
+RUN apt-get update
+RUN apt-get install python3
 RUN npm install
+
+RUN mkdir /data
+VOLUME [ "/data" ]
 
 EXPOSE 3000
 
-CMD ["npm", "run", "prod"]
+ENTRYPOINT ["npm", "run"]
+CMD ["prod"]
